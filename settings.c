@@ -911,9 +911,12 @@ void SETTINGS_SaveChannelName(uint8_t channel, const char * name)
 
 void SETTINGS_UpdateChannel(uint8_t channel, const VFO_Info_t *pVFO, bool keep, bool check, bool save)
 {
-#ifdef ENABLE_NOAA
-    if (!IS_NOAA_CHANNEL(channel))
-#endif
+    // gMR_ChannelAttributes[] only has FREQ_CHANNEL_LAST+1 (207) entries, covering
+    // MR+FREQ channels; NOAA channels (207..216) and anything beyond are handled
+    // elsewhere. This bound must stay unconditional and independent of ENABLE_NOAA,
+    // or an out-of-range channel value (this is a uint8_t, so up to 255) would
+    // write past the array.
+    if (channel <= FREQ_CHANNEL_LAST)
     {
         uint8_t  state[8];
         ChannelAttributes_t  att = {

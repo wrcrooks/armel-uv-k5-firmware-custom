@@ -116,20 +116,27 @@ bool DTMF_ValidateCodes(char *pCode, const unsigned int size)
 {
     unsigned int i;
 
+    if (size == 0)
+        return false;
+
     if (pCode[0] == 0xFF || pCode[0] == 0)
         return false;
 
-    for (i = 0; i < size; i++)
+    // Reserve the last byte for a guaranteed NUL terminator: downstream code
+    // (sprintf "%s", strlen(), BK4819_PlayDTMFString's raw pString[i] loop)
+    // treats this field as a plain C string with no length bound, so a code
+    // that fills every byte with valid DTMF characters must not be accepted
+    // as-is or those readers run off the end of the field.
+    for (i = 0; i < size - 1; i++)
     {
         if (pCode[i] == 0xFF || pCode[i] == 0)
-        {
-            pCode[i] = 0;
             break;
-        }
 
         if ((pCode[i] < '0' || pCode[i] > '9') && (pCode[i] < 'A' || pCode[i] > 'D') && pCode[i] != '*' && pCode[i] != '#')
             return false;
     }
+
+    pCode[i] = 0;
 
     return true;
 }

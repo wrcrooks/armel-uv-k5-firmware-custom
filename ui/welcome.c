@@ -77,6 +77,12 @@ void UI_DisplayWelcome(void)
 
         EEPROM_ReadBuffer(0x0EB0, WelcomeString0, 16);
         EEPROM_ReadBuffer(0x0EC0, WelcomeString1, 16);
+        // Guarantee NUL termination: a radio whose welcome-string EEPROM range
+        // was never programmed by CHIRP/vendor tools can hold 16 bytes with no
+        // terminator, and strlen()/UI_PrintString() below would then run past
+        // these 16-byte stack buffers looking for one.
+        WelcomeString0[sizeof(WelcomeString0) - 1] = 0;
+        WelcomeString1[sizeof(WelcomeString1) - 1] = 0;
 
         sprintf(WelcomeString2, "%u.%02uV %u%%",
                 gBatteryVoltageAverage / 100,

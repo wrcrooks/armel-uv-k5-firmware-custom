@@ -164,18 +164,10 @@ void Main(void)
         #ifdef ENABLE_FEAT_F4HWN
             gEeprom.KEY_LOCK = 0;
             SETTINGS_SaveSettings();
-            #ifndef ENABLE_VOX
-                gMenuCursor = 67; // move to hidden section, fix me if change... !!! Remove VOX and Mic Bar
-            #else
-                gMenuCursor = 68; // move to hidden section, fix me if change... !!!
-            #endif
-
-            #ifdef ENABLE_NOAA
-                gMenuCursor += 1; // move to hidden section, fix me if change... !!!
-            #endif
-            #ifdef ENABLE_FEAT_F4HWN_RESCUE_OPS
-                gMenuCursor += 1; // move to hidden section, fix me if change... !!!
-            #endif
+            // Look MENU_F_LOCK's position up in MenuList[] directly instead of
+            // hardcoding its index: that index silently goes stale whenever any
+            // build flag that adds/removes a menu entry before F Lock changes.
+            gMenuCursor = UI_MENU_GetMenuIdx(MENU_F_LOCK);
             gSubMenuSelection = gSetting_F_LOCK;
         #endif
     }

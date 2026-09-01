@@ -950,7 +950,7 @@ void UI_DisplayMenu(void)
 
 #ifdef ENABLE_DTMF_CALLING
         case MENU_ANI_ID:
-            strcpy(String, gEeprom.ANI_DTMF_ID);
+            sprintf(String, "%.8s", gEeprom.ANI_DTMF_ID);
             break;
 #endif
         case MENU_UPCODE:
@@ -1262,7 +1262,10 @@ void UI_DisplayMenu(void)
 
         char *pPrintStr = String;
 
-        if (gSubMenuSelection < 0) {
+        // RADIO_FindNextChannel() returns 0xFF ("not found") into this
+        // int32_t, which is never < 0 - IS_MR_CHANNEL() catches both that
+        // sentinel and any genuinely negative value.
+        if (!IS_MR_CHANNEL(gSubMenuSelection)) {
             pPrintStr = "NULL";
         } else {
             UI_GenerateChannelStringEx(String, true, gSubMenuSelection);
@@ -1276,7 +1279,7 @@ void UI_DisplayMenu(void)
         pPrintStr = String[0] ? String : "--";
 
         // channel name and scan-list
-        if (gSubMenuSelection < 0 || !gEeprom.SCAN_LIST_ENABLED[i]) {
+        if (!IS_MR_CHANNEL(gSubMenuSelection) || !gEeprom.SCAN_LIST_ENABLED[i]) {
             UI_PrintString(pPrintStr, menu_item_x1, menu_item_x2, 2, 8);
         } else {
             /*

@@ -27,11 +27,21 @@
 #include "ui/helper.h"
 #include "ui/inputbox.h"
 
+// crc[] (misc.c) is a fixed uint8_t[15] = 120 bits. gErrorsDuringAirCopy grows
+// independently of gAirCopyBlockNumber (it increments on every CRC error, with
+// no combined cap), so bit_index can exceed 120 - bound it here rather than at
+// every call site.
+#define CRC_BIT_COUNT 120
+
 static void set_bit(uint8_t* array, int bit_index) {
+    if (bit_index < 0 || bit_index >= CRC_BIT_COUNT)
+        return;
     array[bit_index / 8] |= (1 << (bit_index % 8));
 }
 
 static int get_bit(uint8_t* array, int bit_index) {
+    if (bit_index < 0 || bit_index >= CRC_BIT_COUNT)
+        return 0;
     return (array[bit_index / 8] >> (bit_index % 8)) & 1;
 }
 
@@ -104,7 +114,10 @@ void UI_DisplayAircopy(void)
             lErrorsDuringAirCopy = gErrorsDuringAirCopy;
         }
 
-        for(uint8_t i = 0; i < (gAirCopyBlockNumber + gErrorsDuringAirCopy); i++)
+        // i is widened to uint16_t and capped at CRC_BIT_COUNT: with an unbounded
+        // gErrorsDuringAirCopy, a uint8_t loop variable could wrap and spin forever,
+        // and i+4 must stay within gFrameBuffer[4]'s 128-byte row.
+        for(uint16_t i = 0; i < (gAirCopyBlockNumber + gErrorsDuringAirCopy) && i < CRC_BIT_COUNT; i++)
         {
             if(get_bit(crc, i) == 0)
             {

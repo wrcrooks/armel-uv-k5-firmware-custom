@@ -460,7 +460,7 @@ void APP_RunBreakout(void) {
         static uint8_t swap = 0;
 
         // Init seed
-        srand_custom(BK4819_ReadRegister(BK4819_REG_67) & 0x01FF * gBatteryVoltageAverage * gEeprom.VfoInfo[0].pRX->Frequency);
+        srand_custom((BK4819_ReadRegister(BK4819_REG_67) & 0x01FF) * gBatteryVoltageAverage * gEeprom.VfoInfo[0].pRX->Frequency);
 
         // Init led
         BK4819_ToggleGpioOut(BK4819_GPIO6_PIN2_GREEN, false);

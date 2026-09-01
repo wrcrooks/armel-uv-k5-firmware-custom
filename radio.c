@@ -104,8 +104,14 @@ bool RADIO_CheckValidChannel(uint16_t channel, bool checkScanList, uint8_t scanL
 
     //return true;
 
-    // I don't understand what this code is for...
-    
+    // SCANLIST_PRIORITY_CH1/2 only have entries for the 3 numbered scan
+    // lists (index scanList-1, valid for scanList 1..3). scanList==0 ("not
+    // in any list") and scanList==4 ("in any list") have no corresponding
+    // priority-channel pair, so scanList-1 would index out of bounds
+    // (-1, or 3 on a 3-entry array) - skip the priority check for those.
+    if (scanList < 1 || scanList > 3)
+        return true;
+
     const uint8_t PriorityCh1 = gEeprom.SCANLIST_PRIORITY_CH1[scanList - 1];
     const uint8_t PriorityCh2 = gEeprom.SCANLIST_PRIORITY_CH2[scanList - 1];
 
@@ -395,7 +401,10 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 
     pVfo->freq_config_RX.Frequency = frequency;
 
-    if (frequency >= frequencyBandTable[BAND2_108MHz].upper && frequency < frequencyBandTable[BAND2_108MHz].upper)
+    // was ".upper && < .upper" (always false, dead code) - should bound the
+    // whole BAND2_108MHz (receive-only airband) range, matching the
+    // ">= lower && < upper" convention used elsewhere in this file.
+    if (frequency >= frequencyBandTable[BAND2_108MHz].lower && frequency < frequencyBandTable[BAND2_108MHz].upper)
         pVfo->TX_OFFSET_FREQUENCY_DIRECTION = TX_OFFSET_FREQUENCY_DIRECTION_OFF;
     else if (!IS_MR_CHANNEL(channel))
         pVfo->TX_OFFSET_FREQUENCY = FREQUENCY_RoundToStep(pVfo->TX_OFFSET_FREQUENCY, pVfo->StepFrequency);

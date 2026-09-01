@@ -14,6 +14,7 @@
  *     limitations under the License.
  */
 
+#include <stddef.h>
 #include <string.h>
 
 #if !defined(ENABLE_OVERLAY)
@@ -262,6 +263,9 @@ static void CMD_051B(const uint8_t *pBuffer)
     const CMD_051B_t *pCmd = (const CMD_051B_t *)pBuffer;
     REPLY_051B_t      Reply;
     bool              bLocked = false;
+    // pCmd->Size comes straight off the wire (0-255); clamp it to the reply
+    // buffer's real capacity or EEPROM_ReadBuffer() overflows Reply's stack storage.
+    const uint8_t     Size = (pCmd->Size <= sizeof(Reply.Data.Data)) ? pCmd->Size : sizeof(Reply.Data.Data);
 
     if (pCmd->Timestamp != Timestamp)
         return;
@@ -274,17 +278,17 @@ static void CMD_051B(const uint8_t *pBuffer)
 
     memset(&Reply, 0, sizeof(Reply));
     Reply.Header.ID   = 0x051C;
-    Reply.Header.Size = pCmd->Size + 4;
+    Reply.Header.Size = Size + 4;
     Reply.Data.Offset = pCmd->Offset;
-    Reply.Data.Size   = pCmd->Size;
+    Reply.Data.Size   = Size;
 
     if (bHasCustomAesKey)
         bLocked = gIsLocked;
 
     if (!bLocked)
-        EEPROM_ReadBuffer(pCmd->Offset, Reply.Data.Data, pCmd->Size);
+        EEPROM_ReadBuffer(pCmd->Offset, Reply.Data.Data, Size);
 
-    SendReply(&Reply, pCmd->Size + 8);
+    SendReply(&Reply, Size + 8);
 }
 
 // write eeprom
@@ -314,8 +318,12 @@ static void CMD_051D(const uint8_t *pBuffer)
 
     if (!bIsLocked)
     {
+        // pCmd->Size comes straight off the wire (0-255); clamp it so
+        // pCmd->Data[] never reads past UART_Command.Buffer's real storage.
+        const uint8_t MaxSize = sizeof(UART_Command.Buffer) - offsetof(CMD_051D_t, Data);
+        const uint8_t Size    = (pCmd->Size <= MaxSize) ? pCmd->Size : MaxSize;
         unsigned int i;
-        for (i = 0; i < (pCmd->Size / 8); i++)
+        for (i = 0; i < (Size / 8); i++)
         {
             const uint16_t Offset = pCmd->Offset + (i * 8U);
 

@@ -28,13 +28,16 @@
 uint8_t gStatusLine[LCD_WIDTH];
 uint8_t gFrameBuffer[FRAME_LINES][LCD_WIDTH];
 
-static void DrawLine(uint8_t column, uint8_t line, const uint8_t * lineBuffer, unsigned size_defVal)
-{   
+// When lineBuffer is NULL, every byte sent is fillValue instead; size is
+// always the number of bytes to transmit (never conflate it with the fill
+// value - see history of this function for the regression that did).
+static void DrawLine(uint8_t column, uint8_t line, const uint8_t * lineBuffer, uint8_t fillValue, unsigned size)
+{
     ST7565_SelectColumnAndLine(column + 4, line);
     GPIO_SetBit(&GPIOB->DATA, GPIOB_PIN_ST7565_A0);
-    for (unsigned i = 0; i < size_defVal; i++) {
+    for (unsigned i = 0; i < size; i++) {
         while ((SPI0->FIFOST & SPI_FIFOST_TFF_MASK) != SPI_FIFOST_TFF_BITS_NOT_FULL) {}
-        SPI0->WDR = lineBuffer ? lineBuffer[i] : size_defVal;
+        SPI0->WDR = lineBuffer ? lineBuffer[i] : fillValue;
     }
     SPI_WaitForUndocumentedTxFifoStatusBit();
 }
@@ -42,7 +45,7 @@ static void DrawLine(uint8_t column, uint8_t line, const uint8_t * lineBuffer, u
 void ST7565_DrawLine(const unsigned int Column, const unsigned int Line, const uint8_t *pBitmap, const unsigned int Size)
 {
     SPI_ToggleMasterMode(&SPI0->CR, false);
-    DrawLine(Column, Line, pBitmap, Size);
+    DrawLine(Column, Line, pBitmap, 0, Size);
     SPI_ToggleMasterMode(&SPI0->CR, true);
 }
 
@@ -62,16 +65,16 @@ void ST7565_DrawLine(const unsigned int Column, const unsigned int Line, const u
 
         if(line == 0)
         {
-            DrawLine(0, 0, gStatusLine, LCD_WIDTH);
+            DrawLine(0, 0, gStatusLine, 0, LCD_WIDTH);
         }
         else if(line <= FRAME_LINES)
         {
-            DrawLine(0, line, gFrameBuffer[line - 1], LCD_WIDTH);
+            DrawLine(0, line, gFrameBuffer[line - 1], 0, LCD_WIDTH);
         }
         else
         {
             for (line = 1; line <= FRAME_LINES; line++) {
-                DrawLine(0, line, gFrameBuffer[line - 1], LCD_WIDTH);
+                DrawLine(0, line, gFrameBuffer[line - 1], 0, LCD_WIDTH);
             }
         }
 
@@ -98,7 +101,7 @@ void ST7565_DrawLine(const unsigned int Column, const unsigned int Line, const u
         SPI_ToggleMasterMode(&SPI0->CR, false);
         ST7565_WriteByte(0x40);
         for (unsigned line = 0; line < FRAME_LINES; line++) {
-            DrawLine(0, line+1, gFrameBuffer[line], LCD_WIDTH);
+            DrawLine(0, line+1, gFrameBuffer[line], 0, LCD_WIDTH);
         }
         SPI_ToggleMasterMode(&SPI0->CR, true);
     }
@@ -107,7 +110,7 @@ void ST7565_DrawLine(const unsigned int Column, const unsigned int Line, const u
     {
         SPI_ToggleMasterMode(&SPI0->CR, false);
         ST7565_WriteByte(0x40);    // start line ?
-        DrawLine(0, line+1, gFrameBuffer[line], LCD_WIDTH);
+        DrawLine(0, line+1, gFrameBuffer[line], 0, LCD_WIDTH);
         SPI_ToggleMasterMode(&SPI0->CR, true);
     }
 
@@ -115,7 +118,7 @@ void ST7565_DrawLine(const unsigned int Column, const unsigned int Line, const u
     {   // the top small text line on the display
         SPI_ToggleMasterMode(&SPI0->CR, false);
         ST7565_WriteByte(0x40);    // start line ?
-        DrawLine(0, 0, gStatusLine, LCD_WIDTH);
+        DrawLine(0, 0, gStatusLine, 0, LCD_WIDTH);
         SPI_ToggleMasterMode(&SPI0->CR, true);
     }
 #endif
@@ -124,7 +127,7 @@ void ST7565_FillScreen(uint8_t value)
 {
     SPI_ToggleMasterMode(&SPI0->CR, false);
     for (unsigned i = 0; i < 8; i++) {
-        DrawLine(0, i, NULL, value);
+        DrawLine(0, i, NULL, value, LCD_WIDTH);
     }
     SPI_ToggleMasterMode(&SPI0->CR, true);
 }
@@ -219,6 +222,8 @@ uint8_t cmds[] = {
         {
             ST7565_Cmd(i);
         }
+        SPI_WaitForUndocumentedTxFifoStatusBit();
+        SPI_ToggleMasterMode(&SPI0->CR, true);
     }
     #endif
 
