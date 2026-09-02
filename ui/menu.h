@@ -81,8 +81,11 @@ enum
 #ifdef ENABLE_ALARM
     MENU_AL_MOD,
 #endif
-#ifdef ENABLE_DTMF_CALLING
+#if defined(ENABLE_DTMF_CALLING) || defined(ENABLE_BEACON)
     MENU_ANI_ID,
+#endif
+#ifdef ENABLE_BEACON
+    MENU_BEACON,
 #endif
     MENU_UPCODE,
     MENU_DWCODE,

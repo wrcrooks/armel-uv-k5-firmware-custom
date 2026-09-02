@@ -199,17 +199,19 @@ void SETTINGS_InitEEPROM(void)
     gEeprom.DTMF_CODE_INTERVAL_TIME = (Data[1] < 101) ? Data[1] * 10 : 100;
 #ifdef ENABLE_DTMF_CALLING
     gEeprom.PERMIT_REMOTE_KILL      = (Data[2] <   2) ? Data[2] : true;
+#endif
 
+#if defined(ENABLE_DTMF_CALLING) || defined(ENABLE_BEACON)
     // 0EE0..0EE7
-
     EEPROM_ReadBuffer(0x0EE0, Data, sizeof(gEeprom.ANI_DTMF_ID));
     if (DTMF_ValidateCodes((char *)Data, sizeof(gEeprom.ANI_DTMF_ID))) {
         memcpy(gEeprom.ANI_DTMF_ID, Data, sizeof(gEeprom.ANI_DTMF_ID));
     } else {
         strcpy(gEeprom.ANI_DTMF_ID, "123");
     }
+#endif
 
-
+#ifdef ENABLE_DTMF_CALLING
     // 0EE8..0EEF
     EEPROM_ReadBuffer(0x0EE8, Data, sizeof(gEeprom.KILL_CODE));
     if (DTMF_ValidateCodes((char *)Data, sizeof(gEeprom.KILL_CODE))) {
@@ -391,6 +393,12 @@ void SETTINGS_InitEEPROM(void)
         // And set special session settings for actions
         gSetting_set_ptt_session = gSetting_set_ptt;
         gEeprom.KEY_LOCK_PTT = gSetting_set_lck;
+    #endif
+
+    #ifdef ENABLE_BEACON
+        // 1FF8..0x1FFF
+        EEPROM_ReadBuffer(0x1FF8, Data, 8);
+        gEeprom.BEACON_INTERVAL = (Data[0] <= 60) ? Data[0] : 0;
     #endif
 }
 
@@ -824,6 +832,12 @@ void SETTINGS_SaveSettings(void)
 
 #ifdef ENABLE_FEAT_F4HWN_VOL
     SETTINGS_WriteCurrentVol();
+#endif
+
+#ifdef ENABLE_BEACON
+    memset(State, 0xFF, sizeof(State));
+    State[0] = gEeprom.BEACON_INTERVAL;
+    EEPROM_WriteBuffer(0x1FF8, State);
 #endif
 }
 

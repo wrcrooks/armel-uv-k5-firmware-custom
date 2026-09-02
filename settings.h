@@ -191,6 +191,9 @@ typedef struct {
 
     uint8_t               SQUELCH_LEVEL;
     uint8_t               TX_TIMEOUT_TIMER;
+#ifdef ENABLE_BEACON
+    uint8_t               BEACON_INTERVAL;   // minutes, 0 = off
+#endif
     bool                  KEY_LOCK;
 #ifdef ENABLE_FEAT_F4HWN
     bool                  KEY_LOCK_PTT;
@@ -242,8 +245,10 @@ typedef struct {
     uint8_t               MIC_SENSITIVITY;
     uint8_t               MIC_SENSITIVITY_TUNING;
     uint8_t               CHAN_1_CALL;
-#ifdef ENABLE_DTMF_CALLING
+#if defined(ENABLE_DTMF_CALLING) || defined(ENABLE_BEACON)
     char                  ANI_DTMF_ID[8];
+#endif
+#ifdef ENABLE_DTMF_CALLING
     char                  KILL_CODE[8];
     char                  REVIVE_CODE[8];
 #endif

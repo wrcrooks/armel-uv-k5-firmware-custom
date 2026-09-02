@@ -1808,6 +1808,53 @@ void APP_TimeSlice500ms(void)
         gUpdateDisplay = true;
     }
 #endif
+
+#ifdef ENABLE_BEACON
+    if (gEeprom.BEACON_INTERVAL > 0 && gBeaconCountdown_500ms == 0)
+    {
+        // only fire while genuinely idle on the main screen - never
+        // interrupt an open squelch, a scan, DTMF entry/call handling, or
+        // sleep
+        if ((gCurrentFunction == FUNCTION_FOREGROUND || gCurrentFunction == FUNCTION_RECEIVE)
+            && gScanStateDir == SCAN_OFF
+            && gScreenToDisplay == DISPLAY_MAIN
+            && !gPttIsPressed
+            && !gDTMF_InputMode
+#ifdef ENABLE_DTMF_CALLING
+            && gDTMF_CallState == DTMF_CALL_STATE_NONE
+#endif
+        )
+        {
+            gDTMF_ReplyState = DTMF_REPLY_BEACON;
+            RADIO_PrepareTX();
+
+            if (gCurrentFunction == FUNCTION_TRANSMIT)
+            {
+                // RADIO_PrepareTX() -> FUNCTION_Select(FUNCTION_TRANSMIT) ->
+                // FUNCTION_Transmit() already keyed up and synchronously
+                // played the ID via DTMF_Reply() - end the burst immediately
+                // rather than staying keyed
+                APP_EndTransmission();
+                FUNCTION_Select(FUNCTION_FOREGROUND);
+                gFlagEndTransmission = false;
+                gUpdateStatus        = true;
+                gUpdateDisplay       = true;
+            }
+            else
+            {
+                // TX was refused (TX-locked/busy channel/battery) - clear
+                // the reply state so it doesn't leak into the next real PTT
+                gDTMF_ReplyState = DTMF_REPLY_NONE;
+            }
+
+            gBeaconCountdown_500ms = (uint16_t)gEeprom.BEACON_INTERVAL * 120;   // minutes -> 500ms ticks
+        }
+        else
+        {
+            gBeaconCountdown_500ms = 20;   // not idle right now - retry in ~10s
+        }
+    }
+#endif
 }
 
 #if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)

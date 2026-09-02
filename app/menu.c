@@ -142,6 +142,13 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             *pMax = 10;
             break;
 
+#ifdef ENABLE_BEACON
+        case MENU_BEACON:
+            //*pMin = 0;
+            *pMax = 60;
+            break;
+#endif
+
         case MENU_F_LOCK:
             //*pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_F_LOCK) - 1;
@@ -641,6 +648,12 @@ void MENU_AcceptSetting(void)
         case MENU_TOT:
             gEeprom.TX_TIMEOUT_TIMER = gSubMenuSelection;
             break;
+
+#ifdef ENABLE_BEACON
+        case MENU_BEACON:
+            gEeprom.BEACON_INTERVAL = gSubMenuSelection;
+            break;
+#endif
 
         #ifdef ENABLE_VOICE
             case MENU_VOICE:
@@ -1145,6 +1158,12 @@ void MENU_ShowCurrentSetting(void)
         case MENU_TOT:
             gSubMenuSelection = gEeprom.TX_TIMEOUT_TIMER;
             break;
+
+#ifdef ENABLE_BEACON
+        case MENU_BEACON:
+            gSubMenuSelection = gEeprom.BEACON_INTERVAL;
+            break;
+#endif
 
 #ifdef ENABLE_VOICE
         case MENU_VOICE:
@@ -1668,9 +1687,9 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
             if (UI_MENU_GetCurrentMenuId() != MENU_SCR)
                 gAnotherVoiceID = MenuList[gMenuCursor].voice_id;
         #endif
-        if (UI_MENU_GetCurrentMenuId() == MENU_UPCODE 
-            || UI_MENU_GetCurrentMenuId() == MENU_DWCODE 
-#ifdef ENABLE_DTMF_CALLING 
+        if (UI_MENU_GetCurrentMenuId() == MENU_UPCODE
+            || UI_MENU_GetCurrentMenuId() == MENU_DWCODE
+#if defined(ENABLE_DTMF_CALLING) || defined(ENABLE_BEACON)
             || UI_MENU_GetCurrentMenuId() == MENU_ANI_ID
 #endif
             )

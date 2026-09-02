@@ -447,6 +447,11 @@ void DTMF_Reply(void)
             pString = String;
             break;
 #endif
+#ifdef ENABLE_BEACON
+        case DTMF_REPLY_BEACON:
+            pString = gEeprom.ANI_DTMF_ID;
+            break;
+#endif
         default:
         case DTMF_REPLY_NONE:
             if (

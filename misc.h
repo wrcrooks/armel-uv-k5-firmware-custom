@@ -249,6 +249,10 @@ extern volatile bool         gNextTimeslice_500ms;
 extern volatile uint16_t     gTxTimerCountdown_500ms;
 extern volatile bool         gTxTimeoutReached;
 
+#ifdef ENABLE_BEACON
+    extern volatile uint16_t gBeaconCountdown_500ms;
+#endif
+
 #ifdef ENABLE_FEAT_F4HWN
     extern volatile uint16_t gTxTimerCountdownAlert_500ms;
     extern volatile bool     gTxTimeoutReachedAlert;

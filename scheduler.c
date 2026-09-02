@@ -65,6 +65,10 @@ void SystickHandler(void)
         
         DECREMENT_AND_TRIGGER(gTxTimerCountdown_500ms, gTxTimeoutReached);
         DECREMENT(gSerialConfigCountDown_500ms);
+
+#ifdef ENABLE_BEACON
+        DECREMENT(gBeaconCountdown_500ms);
+#endif
     }
 
     if ((gGlobalSysTickCounter & 3) == 0)
