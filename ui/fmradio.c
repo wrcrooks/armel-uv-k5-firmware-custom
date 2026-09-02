@@ -29,6 +29,37 @@
 #include "ui/inputbox.h"
 #include "ui/ui.h"
 
+#ifdef ENABLE_FMRADIO_MINIMIZED
+// Channel-memory presets, MR mode, and auto-scan have all been removed to
+// save flash - this screen is now just VFO frequency + scan state. See the
+// #else branch below for the full version (ENABLE_FMRADIO_MINIMIZED=0).
+void UI_DisplayFM(void)
+{
+    char String[16] = {0};
+    UI_DisplayClear();
+
+    UI_PrintString("FM", 2, 0, 0, 8);
+
+    sprintf(String, "%d%s-%dM",
+        BK1080_GetFreqLoLimit(gEeprom.FM_Band)/10,
+        gEeprom.FM_Band == 0 ? ".5" : "",
+        BK1080_GetFreqHiLimit(gEeprom.FM_Band)/10
+        );
+
+    UI_PrintStringSmallNormal(String, 1, 0, 6);
+
+    //uint8_t spacings[] = {20,10,5};
+    //sprintf(String, "%d0k", spacings[gEeprom.FM_Space % 3]);
+    //UI_PrintStringSmallNormal(String, 127 - 4*7, 0, 6);
+
+    UI_PrintString(gFM_ScanState == FM_SCAN_OFF ? "VFO" : "SCAN", 0, 127, 3, 10);
+
+    sprintf(String, "%3d.%d", gEeprom.FM_FrequencyPlaying / 10, gEeprom.FM_FrequencyPlaying % 10);
+
+    UI_DisplayFrequency(String, 36, 1, true);  // frequency
+    ST7565_BlitFullScreen();
+}
+#else
 void UI_DisplayFM(void)
 {
     char String[16] = {0};
@@ -37,12 +68,12 @@ void UI_DisplayFM(void)
 
     UI_PrintString("FM", 2, 0, 0, 8);
 
-    sprintf(String, "%d%s-%dM", 
+    sprintf(String, "%d%s-%dM",
         BK1080_GetFreqLoLimit(gEeprom.FM_Band)/10,
         gEeprom.FM_Band == 0 ? ".5" : "",
         BK1080_GetFreqHiLimit(gEeprom.FM_Band)/10
         );
-    
+
     UI_PrintStringSmallNormal(String, 1, 0, 6);
 
     //uint8_t spacings[] = {20,10,5};
@@ -98,5 +129,6 @@ void UI_DisplayFM(void)
 
     ST7565_BlitFullScreen();
 }
+#endif
 
 #endif
