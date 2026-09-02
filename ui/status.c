@@ -133,14 +133,12 @@ void UI_DisplayStatus()
         UI_PrintStringSmallBufferNormal(str, line + x + 1);
         x += 16;
     #else
-        #ifdef ENABLE_VOICE
-        // VOICE indicator
-        if (gEeprom.VOICE_PROMPT != VOICE_PROMPT_OFF){
-            memcpy(line + x, BITMAP_VoicePrompt, sizeof(BITMAP_VoicePrompt));
-            x1 = x + sizeof(BITMAP_VoicePrompt);
-        }
-        x += sizeof(BITMAP_VoicePrompt);
-        #endif
+        // A "VOICE indicator" status-bar icon used to live here, referencing
+        // BITMAP_VoicePrompt - a bitmap that was never actually defined
+        // anywhere in the codebase (predates this repo's initial commit).
+        // Voice-prompt audio playback itself is unaffected; this only ever
+        // controlled a status icon that could never have compiled under
+        // ENABLE_VOICE until now, so there was never a real icon to keep.
 
         if(!SCANNER_IsScanning()) {
         #ifdef ENABLE_FEAT_F4HWN_RX_TX_TIMER
