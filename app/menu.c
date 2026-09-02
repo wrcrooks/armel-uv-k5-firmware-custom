@@ -1596,11 +1596,14 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
 
     if (!gIsInSubMenu)
     {
-        #ifdef ENABLE_VOICE
-            if (UI_MENU_GetCurrentMenuId() != MENU_SCR)
-                gAnotherVoiceID = MenuList[gMenuCursor].voice_id;
-        #endif
-        if (UI_MENU_GetCurrentMenuId() == MENU_UPCODE 
+        // t_menu_item.voice_id (the source for this per-item announcement)
+        // was deliberately removed in "Save 116 bytes" to cut flash size;
+        // this ENABLE_VOICE-only call site was missed at the time and has
+        // been broken (both a stale `voice_id` member and a MENU_SCR that
+        // doesn't exist under ENABLE_FEAT_F4HWN) ever since. Not restoring
+        // the field since that would undo the size optimization for
+        // everyone - MENU no longer has a per-item voice announcement here.
+        if (UI_MENU_GetCurrentMenuId() == MENU_UPCODE
             || UI_MENU_GetCurrentMenuId() == MENU_DWCODE 
 #ifdef ENABLE_DTMF_CALLING 
             || UI_MENU_GetCurrentMenuId() == MENU_ANI_ID
@@ -1714,10 +1717,14 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
     SCANNER_Stop();
 
     #ifdef ENABLE_VOICE
-        if (UI_MENU_GetCurrentMenuId() == MENU_SCR)
-            gAnotherVoiceID = (gSubMenuSelection == 0) ? VOICE_ID_SCRAMBLER_OFF : VOICE_ID_SCRAMBLER_ON;
-        else
-            gAnotherVoiceID = VOICE_ID_CONFIRM;
+        // MENU_SCR (the scrambler menu) only exists when ENABLE_FEAT_F4HWN
+        // is off - it's a different, unified menu item under F4HWN.
+        #ifndef ENABLE_FEAT_F4HWN
+            if (UI_MENU_GetCurrentMenuId() == MENU_SCR)
+                gAnotherVoiceID = (gSubMenuSelection == 0) ? VOICE_ID_SCRAMBLER_OFF : VOICE_ID_SCRAMBLER_ON;
+            else
+        #endif
+                gAnotherVoiceID = VOICE_ID_CONFIRM;
     #endif
 
     gInputBoxIndex = 0;

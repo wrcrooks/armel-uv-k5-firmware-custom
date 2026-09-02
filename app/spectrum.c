@@ -945,8 +945,8 @@ uint8_t Rssi2Y(uint16_t rssi)
         {
             uint16_t rssi = rssiHistory[(bars>128) ? i >> settings.stepsCount : i];
             
-#ifdef ENABLE_SCAN_RANGES
             uint8_t x;
+#ifdef ENABLE_SCAN_RANGES
             if (gScanRangeStart && bars > 1)
             {
                 // Total width units = (bars - 1) full bars + 2 half bars = bars
@@ -1779,8 +1779,9 @@ void APP_RunSpectrum()
             gEeprom.CURRENT_STATE = 5;
         #endif
     }
-    else {
+    else
 #endif
+    {
         currentFreq = initialFreq = gTxVfo->pRX->Frequency -
                                     ((GetStepsCount() / 2) * GetScanStep());
         #ifdef ENABLE_FEAT_F4HWN_RESUME_STATE

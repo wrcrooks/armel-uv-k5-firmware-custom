@@ -344,9 +344,12 @@ void channelMove(uint16_t Channel)
 
     gBeepToPlay = BEEP_NONE;
 
-    #ifdef ENABLE_VOICE
-        gAnotherVoiceID        = (VOICE_ID_t)Key;
-    #endif
+    // ENABLE_VOICE used to announce a `Key` here that channelMove() never
+    // had in scope (a pre-existing bug - this never compiled under
+    // ENABLE_VOICE). Both real callers already announce the pressed digit
+    // themselves where a key press actually exists (MAIN_Key_DIGITS, right
+    // after calling channelMoveSwitch() -> channelMove()); the other caller
+    // is a countdown-timeout callback with no live keypress to announce.
 
     gEeprom.MrChannel[Vfo]     = (uint8_t)Channel;
     gEeprom.ScreenChannel[Vfo] = (uint8_t)Channel;

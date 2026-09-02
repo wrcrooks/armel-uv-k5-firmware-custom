@@ -878,6 +878,13 @@ void UI_DisplayMain(void)
             if (IS_MR_CHANNEL(gEeprom.ScreenChannel[vfo_num]))
             {   // it's a channel
 
+                // Declared here (rather than nested inside the scanlist-bitmap
+                // block below) so it's still in scope for the compander-symbol
+                // check further down, which lives outside that block - and,
+                // when ENABLE_FEAT_F4HWN_RESCUE_OPS is on, outside the
+                // MENU_LOCK block too.
+                const ChannelAttributes_t att = gMR_ChannelAttributes[gEeprom.ScreenChannel[vfo_num]];
+
                 #ifdef ENABLE_FEAT_F4HWN_RESCUE_OPS
                     if(gEeprom.MENU_LOCK == false) {
                 #endif
@@ -887,8 +894,6 @@ void UI_DisplayMain(void)
                 if(gMR_ChannelExclude[gEeprom.ScreenChannel[vfo_num]] == false)
                 {
                     // show the scan list assigment symbols
-                    const ChannelAttributes_t att = gMR_ChannelAttributes[gEeprom.ScreenChannel[vfo_num]];
-
                     countList = att.scanlist1 + att.scanlist2 + att.scanlist3;
 
                     if(countList == 0)
