@@ -50,7 +50,10 @@ enum DTMF_ReplyState_t {
     DTMF_REPLY_NONE = 0,
     DTMF_REPLY_ANI,
     DTMF_REPLY_AB,
-    DTMF_REPLY_AAAAA
+    DTMF_REPLY_AAAAA,
+#ifdef ENABLE_BEACON
+    DTMF_REPLY_BEACON,
+#endif
 };
 
 typedef enum DTMF_ReplyState_t DTMF_ReplyState_t;

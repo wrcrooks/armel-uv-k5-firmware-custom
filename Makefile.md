@@ -52,6 +52,9 @@ Adds a siren/alarm function (triggered as an assignable key action): generates a
 ### `ENABLE_TX1750` (default: 1)
 Adds a 1750 Hz tone-burst transmit function, assignable to the SIDE2 key or the alarm action, used to key open European repeaters that require a 1750 Hz access tone instead of CTCSS/DCS.
 
+### `ENABLE_BEACON` (default: 0)
+Adds an unattended periodic station-identification beacon (implements [armel/uv-k5-firmware-custom#424](https://github.com/armel/uv-k5-firmware-custom/issues/424)): a new "Beacon" menu entry sets an interval in minutes (0 = off, 1-60), and while that many minutes pass with the radio genuinely idle (main screen, no PTT/DTMF/scan/menu activity), it briefly keys up and sends `gEeprom.ANI_DTMF_ID` via DTMF (the same field/mechanism used for PTT-ID, `app/dtmf.c`'s `DTMF_Reply()`), then immediately un-keys — it does not wait for or transmit voice. Reuses `RADIO_PrepareTX()`'s existing safety checks (TX lock, busy-channel, battery level) and a real TX timeout, so a beacon attempt silently defers rather than transmitting if those checks fail. Also widens the `ANI ID` menu entry's visibility to `ENABLE_BEACON` builds (previously `ENABLE_DTMF_CALLING`-only) so the beacon's ID is visible on-device — note that, like `ENABLE_DTMF_CALLING`'s own ANI ID today, this entry is currently read-only from the keypad; changing it requires PC EEPROM-editing software.
+
 ### `ENABLE_PWRON_PASSWORD` (default: 0)
 Adds a 6-digit numeric password lock screen (`UI_DisplayLock` in `ui/lock.c`) shown at power-on whenever `gEeprom.POWER_ON_PASSWORD` is set, blocking use of the radio until the correct code is entered on the keypad.
 
@@ -292,6 +295,7 @@ identified independently, out of scope for this pass) and remains N/A.
 | `ENABLE_VOX` | 1 | +916 | measured directly |
 | `ENABLE_ALARM` | 0 | ~+916 (est.) | enabling overflowed the baseline by 828 bytes; cost estimated as overflow + 88 bytes headroom |
 | `ENABLE_TX1750` | 0 | ~+252 (est.) | enabling overflowed the baseline by 164 bytes; cost estimated as overflow + 88 bytes headroom |
+| `ENABLE_BEACON` | 0 | ~+392 (est.) | enabling overflowed the baseline by 304 bytes; cost estimated as overflow + 88 bytes headroom (measured +356 bytes directly against a clean, low-headroom upstream `main` baseline - see [upstream PR #563](https://github.com/armel/uv-k5-firmware-custom/pull/563)) |
 | `ENABLE_PWRON_PASSWORD` | 0 | ~+652 (est.) | enabling overflowed the baseline by 564 bytes; cost estimated as overflow + 88 bytes headroom |
 | `ENABLE_DTMF_CALLING` | 0 | ~+3720 (est.) | enabling overflowed the baseline by 3632 bytes; cost estimated as overflow + 88 bytes headroom |
 | `ENABLE_FLASHLIGHT` | 1 | +276 | measured directly |

@@ -107,8 +107,11 @@ const t_menu_item MenuList[] =
 #ifdef ENABLE_ALARM
     {"AlarmT",      MENU_AL_MOD        },
 #endif
-#ifdef ENABLE_DTMF_CALLING
+#if defined(ENABLE_DTMF_CALLING) || defined(ENABLE_BEACON)
     {"ANI ID",      MENU_ANI_ID        },
+#endif
+#ifdef ENABLE_BEACON
+    {"Beacon",      MENU_BEACON        },
 #endif
     {"UPCode",      MENU_UPCODE        },
     {"DWCode",      MENU_DWCODE        },
@@ -957,9 +960,18 @@ void UI_DisplayMenu(void)
                 break;
         #endif
 
-#ifdef ENABLE_DTMF_CALLING
+#if defined(ENABLE_DTMF_CALLING) || defined(ENABLE_BEACON)
         case MENU_ANI_ID:
             sprintf(String, "%.8s", gEeprom.ANI_DTMF_ID);
+            break;
+#endif
+
+#ifdef ENABLE_BEACON
+        case MENU_BEACON:
+            if (gSubMenuSelection == 0)
+                strcpy(String, gSubMenu_OFF_ON[0]);
+            else
+                sprintf(String, "%um", gSubMenuSelection);
             break;
 #endif
         case MENU_UPCODE:

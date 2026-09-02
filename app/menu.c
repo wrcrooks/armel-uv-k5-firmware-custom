@@ -142,6 +142,13 @@ int MENU_GetLimits(uint8_t menu_id, int32_t *pMin, int32_t *pMax)
             *pMax = 10;
             break;
 
+#ifdef ENABLE_BEACON
+        case MENU_BEACON:
+            //*pMin = 0;
+            *pMax = 60;
+            break;
+#endif
+
         case MENU_F_LOCK:
             //*pMin = 0;
             *pMax = ARRAY_SIZE(gSubMenu_F_LOCK) - 1;
@@ -479,6 +486,9 @@ static const struct { uint8_t menu_id; uint8_t *pField; } gMenuCopyFieldMap[] = 
     { MENU_RP_STE,  &gEeprom.REPEATER_TAIL_TONE_ELIMINATION },
     { MENU_1_CALL,  &gEeprom.CHAN_1_CALL },
     { MENU_S_LIST,  &gEeprom.SCAN_LIST_DEFAULT },
+#ifdef ENABLE_BEACON
+    { MENU_BEACON,  &gEeprom.BEACON_INTERVAL },
+#endif
 #ifdef ENABLE_DTMF_CALLING
     { MENU_D_RSP,   &gEeprom.DTMF_DECODE_RESPONSE },
     { MENU_D_HOLD,  &gEeprom.DTMF_auto_reset_time },
@@ -1604,8 +1614,8 @@ static void MENU_Key_MENU(const bool bKeyPressed, const bool bKeyHeld)
         // the field since that would undo the size optimization for
         // everyone - MENU no longer has a per-item voice announcement here.
         if (UI_MENU_GetCurrentMenuId() == MENU_UPCODE
-            || UI_MENU_GetCurrentMenuId() == MENU_DWCODE 
-#ifdef ENABLE_DTMF_CALLING 
+            || UI_MENU_GetCurrentMenuId() == MENU_DWCODE
+#if defined(ENABLE_DTMF_CALLING) || defined(ENABLE_BEACON)
             || UI_MENU_GetCurrentMenuId() == MENU_ANI_ID
 #endif
             )

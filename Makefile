@@ -13,6 +13,7 @@ ENABLE_VOICE                    ?= 0
 ENABLE_VOX                      ?= 1
 ENABLE_ALARM                    ?= 0
 ENABLE_TX1750                   ?= 0
+ENABLE_BEACON                   ?= 0
 ENABLE_PWRON_PASSWORD           ?= 0
 ENABLE_DTMF_CALLING             ?= 0
 ENABLE_FLASHLIGHT               ?= 1
@@ -355,6 +356,9 @@ ifeq ($(ENABLE_ALARM),1)
 endif
 ifeq ($(ENABLE_TX1750),1)
 	CFLAGS  += -DENABLE_TX1750
+endif
+ifeq ($(ENABLE_BEACON),1)
+	CFLAGS  += -DENABLE_BEACON
 endif
 ifeq ($(ENABLE_PWRON_PASSWORD),1)
 	CFLAGS  += -DENABLE_PWRON_PASSWORD
